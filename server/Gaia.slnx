@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Gaia.Api/Gaia.Api.csproj" />
+  <Project Path="Gaia.Operations/Gaia.Operations.csproj" />
+</Solution>
