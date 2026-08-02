@@ -2,7 +2,7 @@ namespace Gaia.Operations;
 
 public interface IBinaryOperation
 {
-    string DisplayName { get; }
     string Key { get; }
+    string DisplayName { get; }
     OperationResult Execute(string left, string right);
 }
