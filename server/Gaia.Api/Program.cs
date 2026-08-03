@@ -13,6 +13,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddSingleton<IBinaryOperation, AddOperation>();
+builder.Services.AddSingleton<IBinaryOperation, SubtractOperation>();
+builder.Services.AddSingleton<IBinaryOperation, ConcatenateOperation>();
+builder.Services.AddSingleton<IBinaryOperation, ContainsOperation>();
 builder.Services.AddSingleton<OperationExecutor>();
 
 var app = builder.Build();
