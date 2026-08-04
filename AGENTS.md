@@ -12,10 +12,18 @@ explain every architectural decision and every line of submitted code.
 ## Authority and Ownership
 
 - The user writes and edits all application code.
-- The user runs project, database, package-manager, Git, and migration commands.
-- Codex must not create application code, edit project files, run commands,
-  create branches, commit, or change external state unless the user explicitly
-  authorizes that exact action.
+- The user runs project, database, package-manager, and migration commands
+  unless the user explicitly delegates an exact command to Codex.
+- Codex may perform routine, non-destructive local Git work: inspect repository
+  state and history, create or switch feature branches, and stage or unstage
+  files.
+- Codex must ask for the user's explicit approval immediately before every
+  commit. Merge, rebase, push, branch or worktree removal, history rewriting,
+  and destructive Git operations require separate explicit authorization.
+- Outside the delegated Git scope above, Codex must not create application
+  code, edit project files outside an explicitly authorized change, run project
+  commands, or change external state unless the user explicitly authorizes that
+  exact action.
 - Read-only inspection is allowed only when the user asks Codex to review or
   diagnose the current state.
 - Explicit authorization is narrow. Permission for one action does not grant
@@ -34,7 +42,9 @@ explain every architectural decision and every line of submitted code.
 7. Stop and wait while the user implements it.
 8. Review the user's work directly and critically.
 9. Verify observable behavior, not only compilation or static checks.
-10. When the step is complete, remind the user to make a clean commit.
+10. When the step is complete, Codex prepares a narrowly scoped staged diff,
+    reports the verification evidence and proposed commit message, and asks for
+    approval before committing.
 11. Continue only after the user is ready for the next step.
 
 Do not run ahead, combine several lessons into one assignment, or provide a
@@ -109,7 +119,17 @@ complete implementation when a smaller teaching step is possible.
 
 ## Git Discipline
 
-- Git actions belong to the user unless explicitly delegated.
+- `master` is the stable branch and `dev` is the integration branch. Do not
+  implement or commit feature work directly on either protected branch.
+- Create each feature branch from `dev` using `feat/<short-description>` and
+  verify the active branch before any file-changing implementation begins.
+- A dedicated feature branch is mandatory. A linked worktree is optional and
+  should be used only when the extra isolation is useful.
+- Codex owns routine, non-destructive local Git workflow as described under
+  Authority and Ownership.
+- Before every commit, Codex must show the staged boundary, report fresh
+  verification evidence, propose the Conventional Commit message, and receive
+  explicit user approval.
 - One logical change should produce one Conventional Commit.
 - Do not mix scaffolding cleanup, configuration fixes, refactors, and features
   in one commit when they can be reviewed independently.
@@ -123,4 +143,3 @@ complete implementation when a smaller teaching step is possible.
   doing anything else.
 - Once `graphify-out/` exists, use it as the first source for questions about
   project architecture and file relationships.
-

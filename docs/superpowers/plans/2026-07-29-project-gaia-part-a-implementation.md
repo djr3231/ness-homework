@@ -1,10 +1,11 @@
 # Project Gaia Part A Implementation Plan
 
 > **For user-led pair coding:** Execute this plan one task at a time. The user
-> writes the code and runs every command. Codex explains the task, waits,
-> reviews the resulting files and observed behavior, and approves the task
-> before the user commits or continues. Do not dispatch subagents or implement
-> tasks on the user's behalf.
+> writes the application code and runs project, database, package-manager, and
+> migration commands. Codex explains the task, waits, reviews the resulting
+> files and observed behavior, and handles routine non-destructive local Git
+> work. Codex must receive explicit user approval immediately before every
+> commit. Do not dispatch subagents or implement tasks on the user's behalf.
 
 **Goal:** Build a complete Part A operations platform with a .NET 10 Web API,
 an extensible object-oriented operation core, and a React TypeScript client
@@ -20,9 +21,29 @@ communicates with the server only through the generated OpenAPI contract.
 Scalar, React 19, TypeScript, Vite 8, Tailwind CSS 4,
 `openapi-typescript`, and `openapi-fetch`.
 
+## Continuation and Git Workflow
+
+As of 2026-08-04:
+
+- Tasks 1-6 are complete at commit
+  `becc75d926250f56cd2a2e5c1b83fa49ddb73725`.
+- `master` is the stable branch and `dev` is the integration branch; both point
+  to that completed Task 6 commit at this continuation checkpoint.
+- Task 7 onward is implemented on `feat/react-client`, created from `dev`.
+- Do not implement or commit feature work directly on `master` or `dev`.
+- Codex may inspect Git state/history, create or switch feature branches, and
+  stage or unstage files. Codex must show the staged boundary and verification
+  evidence, then receive explicit user approval immediately before each commit.
+- Merge, rebase, push, branch or worktree removal, history rewriting, and
+  destructive Git operations still require separate explicit authorization.
+- A feature branch is mandatory. A linked worktree is optional rather than a
+  requirement for this continuation.
+
 ## Global Constraints
 
-- The user writes all application code and runs all commands.
+- The user writes all application code and runs project, database,
+  package-manager, and migration commands unless an exact command is explicitly
+  delegated to Codex.
 - Work on one task at a time and stop for review after its verification step.
 - Part A contains no EF Core, SQL Server, migrations, or history code.
 - `Gaia.Operations` must not reference ASP.NET Core or client packages.
@@ -635,6 +656,11 @@ Remove logos, counters, unused assets, and demo styles.
 Leave a minimal accessible placeholder page identifying Project Gaia. Do not
 build the operation form yet.
 
+The approved placeholder is a `main` landmark containing only the page heading
+`Project Gaia`. Remove `src/App.css`, `src/assets/`, unused public demo assets,
+and the generated client template README. Set the document title to
+`Project Gaia`.
+
 - [ ] **Step 5: Verify lint and production build**
 
 Run:
@@ -648,10 +674,11 @@ Expected: both commands succeed.
 
 - [ ] **Step 6: Commit the client scaffold**
 
-After Codex reviews the generated files and confirms no demo code remains:
+After Codex reviews the generated files, confirms no demo code remains, and
+reviews the staged boundary and verification evidence, Codex asks for explicit
+approval to commit. Only after approval, Codex runs:
 
 ```powershell
-git add client
 git commit -m "chore(client): scaffold React TypeScript app"
 ```
 
@@ -755,10 +782,11 @@ Expected: generated types and the API client compile successfully.
 The generated TypeScript declaration is intentionally committed. The generated
 server OpenAPI JSON and local environment file remain ignored.
 
-Run the following from the repository root:
+Codex stages only the scoped `server/Gaia.Api` and `client` changes, reviews the
+staged boundary and verification evidence, and asks for explicit approval.
+Only after approval, Codex runs:
 
 ```powershell
-git add server/Gaia.Api client
 git commit -m "feat(client): add generated typed API client"
 ```
 
@@ -850,12 +878,11 @@ npm run lint
 npm run build
 ```
 
-After Codex reviews the component and real browser behavior:
-
-Run the following from the repository root:
+After Codex reviews the component and real browser behavior, Codex stages only
+the scoped client source changes, reviews the staged boundary and verification
+evidence, and asks for explicit approval. Only after approval, Codex runs:
 
 ```powershell
-git add client/src
 git commit -m "feat(client): load operation catalog from API"
 ```
 
@@ -943,10 +970,11 @@ npm run lint
 npm run build
 ```
 
-After Codex reviews the source and observed browser flow:
+After Codex reviews the source and observed browser flow, Codex stages only the
+scoped client source changes, reviews the staged boundary and verification
+evidence, and asks for explicit approval. Only after approval, Codex runs:
 
 ```powershell
-git add client/src
 git commit -m "feat(client): add operation calculation flow"
 ```
 
@@ -1053,12 +1081,12 @@ Confirm:
 
 - [ ] **Step 7: Commit final documentation**
 
-After Codex reviews the README, all check outputs, and the real browser flow:
-
-Run the following from the repository root:
+After Codex reviews the README, all check outputs, and the real browser flow,
+Codex stages only the final documentation and generated schema, reviews the
+staged boundary, and asks for explicit approval. Only after approval, Codex
+runs:
 
 ```powershell
-git add README.md client/src/api/schema.d.ts
 git commit -m "docs: add Project Gaia setup and verification guide"
 ```
 
