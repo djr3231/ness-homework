@@ -9,7 +9,7 @@
 
 **Goal:** Build a complete Part A operations platform with a .NET 10 Web API,
 an extensible object-oriented operation core, and a React TypeScript client
-whose API types are generated from OpenAPI.
+whose typed API client is generated from OpenAPI.
 
 **Architecture:** `Gaia.Api` is the HTTP adapter and composition root.
 `Gaia.Operations` is a framework-independent class library containing the
@@ -19,7 +19,8 @@ communicates with the server only through the generated OpenAPI contract.
 
 **Tech Stack:** .NET 10, C# 14, ASP.NET Core 10 Controllers, built-in OpenAPI,
 Scalar, React 19, TypeScript, Vite 8, Tailwind CSS 4,
-`openapi-typescript`, and `openapi-fetch`.
+and Hey API (`@hey-api/openapi-ts`) with its TypeScript, SDK, and Fetch client
+plugins.
 
 ## Continuation and Git Workflow
 
@@ -109,7 +110,7 @@ Do not ignore:
 
 ```text
 docs/
-client/src/api/schema.d.ts
+client/src/api/generated/
 ```
 
 - [ ] **Step 3: Inspect the proposed first commit**
@@ -691,8 +692,10 @@ git commit -m "chore(client): scaffold React TypeScript app"
 - Modify: `server/Gaia.Api/Program.cs`
 - Create or modify: `server/Gaia.Api/appsettings.Development.json`
 - Modify: `client/package.json`
+- Modify: `client/package-lock.json`
+- Create: `client/openapi-ts.config.ts`
 - Create: `client/.env.example`
-- Create and commit: `client/src/api/schema.d.ts`
+- Create and commit: `client/src/api/generated/`
 - Create: `client/src/api/client.ts`
 
 **Interfaces:**
@@ -701,36 +704,60 @@ git commit -m "chore(client): scaffold React TypeScript app"
 - Development API base URL: `http://localhost:5050`.
 - Generated schema source:
   `server/Gaia.Api/openapi/gaia-api.json`.
+- Generated DTO types, SDK endpoint functions, and Fetch transport live under
+  `client/src/api/generated/`.
 - All React API access goes through `src/api/client.ts`.
+- React source outside `src/api/client.ts` does not import from
+  `src/api/generated/`.
 
-- [ ] **Step 1: Add an exact CORS policy**
+- [x] **Step 1: Add an exact CORS policy**
 
 Configure `Gaia.Api` to allow only `http://localhost:5173` in Development.
 
 Do not use `AllowAnyOrigin`. Do not add production deployment origins.
 
-- [ ] **Step 2: Install OpenAPI client tooling**
+Verification completed with `dotnet build Gaia.slnx`; both server projects
+built successfully.
+
+- [ ] **Step 2: Replace the incompatible OpenAPI client tooling**
 
 Run from `client`:
 
 ```powershell
-npm install openapi-fetch
-npm install --save-dev openapi-typescript
+npm uninstall openapi-fetch
+npm install --save-dev --save-exact @hey-api/openapi-ts
 ```
 
-- [ ] **Step 3: Add the generation script**
+The exact version is committed through `package.json` and `package-lock.json`.
+Do not use `--force` or `--legacy-peer-deps`. The project requires Node.js
+22.18 or newer; Node.js 22.18.0 has been verified locally.
 
-Add a `generate:api` package script that reads:
+- [ ] **Step 3: Configure deterministic client generation**
 
-```text
-../server/Gaia.Api/openapi/gaia-api.json
+Create `client/openapi-ts.config.ts`:
+
+```typescript
+import { defineConfig } from '@hey-api/openapi-ts'
+
+export default defineConfig({
+  input: '../server/Gaia.Api/openapi/gaia-api.json',
+  output: 'src/api/generated',
+  plugins: [
+    '@hey-api/typescript',
+    '@hey-api/sdk',
+    '@hey-api/client-fetch',
+  ],
+})
 ```
 
-and writes:
+Add this `generate:api` package script:
 
-```text
-src/api/schema.d.ts
+```json
+"generate:api": "openapi-ts"
 ```
+
+Do not integrate generation into every Vite build. The committed generated
+output keeps normal client builds independent from the server build artifact.
 
 - [ ] **Step 4: Generate the contract**
 
@@ -743,18 +770,28 @@ Set-Location ..\client
 npm run generate:api
 ```
 
-Inspect the generated file. Confirm both paths, request body, success response,
-and Problem Details responses are represented.
+Inspect the generated directory. Confirm:
+
+- SDK functions exist for `GET /api/operations` and
+  `POST /api/calculations`;
+- `OperationResponse`, `ExecuteOperationRequest`, `CalculationResponse`, and
+  `ProblemDetails` are represented by generated TypeScript types;
+- documented `200`, `400`, and `500` responses are represented;
+- the generated SDK uses the Fetch client;
+- every generated file identifies itself as generated and contains no manual
+  application logic.
 
 - [ ] **Step 5: Create the central typed client**
 
 `src/api/client.ts` must:
 
-- import the generated `paths` type;
-- create one `openapi-fetch` client;
-- read `VITE_API_BASE_URL`;
+- import the generated Fetch client and SDK endpoint functions;
+- validate `VITE_API_BASE_URL` and configure the generated client once;
+- expose handwritten `loadOperations` and `calculate` functions for React;
+- use generated request, response, and error types without redefining DTOs;
 - contain no secret;
-- avoid hard-coded endpoint response types.
+- avoid hard-coded API URLs and response types;
+- be the only handwritten module that imports from `src/api/generated/`.
 
 Create `.env.example` containing:
 
@@ -766,21 +803,24 @@ Create an ignored `client/.env.local` with the same local value. The
 application must fail clearly during development if `VITE_API_BASE_URL` is
 missing rather than silently using an unrelated URL.
 
-- [ ] **Step 6: Verify schema and client compilation**
+- [ ] **Step 6: Verify generation and client compilation**
 
 Run:
 
 ```powershell
+npm run generate:api
 npm run lint
 npm run build
 ```
 
-Expected: generated types and the API client compile successfully.
+Expected: generation succeeds, lint reports no errors, and the production
+build compiles the generated DTO types, SDK functions, Fetch client, and
+handwritten API boundary successfully.
 
 - [ ] **Step 7: Commit the API boundary**
 
-The generated TypeScript declaration is intentionally committed. The generated
-server OpenAPI JSON and local environment file remain ignored.
+The generated TypeScript client directory is intentionally committed. The
+generated server OpenAPI JSON and local environment file remain ignored.
 
 Codex stages only the scoped `server/Gaia.Api` and `client` changes, reviews the
 staged boundary and verification evidence, and asks for explicit approval.
@@ -986,7 +1026,7 @@ git commit -m "feat(client): add operation calculation flow"
 
 - Create or complete: `README.md`
 - Modify only when verification exposes a defect: server/client source files
-- Regenerate and commit if changed: `client/src/api/schema.d.ts`
+- Regenerate and commit if changed: `client/src/api/generated/`
 
 **Produces:** A submission-ready Part A with reproducible setup, architecture
 explanation, and fresh verification evidence.
@@ -1002,7 +1042,7 @@ It must explain:
 - why `OperationExecutor` exists;
 - how to add a new operation;
 - how to build and run server/client;
-- how to regenerate OpenAPI types;
+- how to regenerate the OpenAPI-derived TypeScript client;
 - local URLs;
 - manual verification matrix;
 - Part A scope and deliberately deferred Part B.
@@ -1026,10 +1066,11 @@ understood before continuing.
 From the repository root, verify the committed generated client is current:
 
 ```powershell
-git diff --exit-code -- client/src/api/schema.d.ts
+git status --short -- client/src/api/generated/
 ```
 
-Expected: exit code 0 and no diff.
+Expected: no output; every regenerated client file matches the committed
+version.
 
 - [ ] **Step 3: Run all static checks**
 
@@ -1075,14 +1116,14 @@ Confirm:
 
 - no `bin`, `obj`, `node_modules`, `dist`, `.env`, or server OpenAPI build
   artifacts are staged;
-- `client/src/api/schema.d.ts` is tracked;
+- the generated files under `client/src/api/generated/` are tracked;
 - no Part B package or database code exists;
 - no template demo files remain.
 
 - [ ] **Step 7: Commit final documentation**
 
 After Codex reviews the README, all check outputs, and the real browser flow,
-Codex stages only the final documentation and generated schema, reviews the
+Codex stages only the final documentation and generated client changes, reviews the
 staged boundary, and asks for explicit approval. Only after approval, Codex
 runs:
 

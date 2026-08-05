@@ -26,7 +26,8 @@ the assignment does not need.
 - Support arithmetic and string operations through one common abstraction.
 - Allow a new operation to be added without changing the executor, controllers,
   API contract, or React form.
-- Generate TypeScript API types from the server's OpenAPI document.
+- Generate TypeScript API types and endpoint functions from the server's
+  OpenAPI document.
 - Return predictable, non-leaking HTTP errors.
 - Keep the business logic independent from ASP.NET Core, React, EF Core, and
   SQL Server.
@@ -66,8 +67,10 @@ the assignment does not need.
 - TypeScript
 - Vite 8
 - Tailwind CSS
-- `openapi-typescript` for generated TypeScript contract types
-- `openapi-fetch` for the typed HTTP client
+- Node.js 22.18 or newer for client generation tooling
+- Hey API (`@hey-api/openapi-ts`) for generated TypeScript contract types and
+  endpoint functions
+- Hey API's TypeScript, SDK, and Fetch client plugins
 
 ### Future Part B
 
@@ -330,7 +333,7 @@ The Calculate button is disabled while a calculation request is in progress.
 React hooks are sufficient for this state. Part A will not add Redux, Zustand,
 TanStack Query, or another state-management/data-fetching library.
 
-## 13. OpenAPI and Generated Client Types
+## 13. OpenAPI and Generated Client
 
 ASP.NET Core exposes an OpenAPI document during development and generates the
 same contract as a local JSON build artifact. The build artifact lets the
@@ -339,17 +342,25 @@ frontend regenerate types without requiring a running backend process.
 The client has a repeatable generation script that:
 
 1. Reads the build-generated server OpenAPI JSON file.
-2. Generates TypeScript contract types using `openapi-typescript`.
-3. Stores the generated file under the client source tree.
+2. Uses Hey API to generate TypeScript DTO types and endpoint functions.
+3. Uses the Hey API Fetch client for browser HTTP transport.
+4. Stores the generated output under `client/src/api/generated/`.
 
-The generated file:
+The generated files:
 
-- Is never edited manually.
-- Is committed to Git so a frontend build does not require a running backend.
-- Is regenerated whenever the HTTP contract changes.
+- Are never edited manually.
+- Are committed to Git so a frontend build does not require a running backend.
+- Are regenerated whenever the HTTP contract changes.
 
-`openapi-fetch` creates the typed HTTP client from the generated path types.
-React components do not construct API URLs or call `fetch` independently.
+The server's API DTOs remain the source of truth for the HTTP contract. Server
+domain entities stay private and are not shared with or generated for the
+client. OpenAPI is the language-neutral boundary between the applications.
+
+Hey API uses the `@hey-api/typescript`, `@hey-api/sdk`, and
+`@hey-api/client-fetch` plugins. A thin handwritten `src/api/client.ts` module
+configures and exposes the generated client to React. React components import
+only from this handwritten boundary; they do not import directly from
+`src/api/generated/`, construct API URLs, or call `fetch` independently.
 
 The API base URL is supplied through `VITE_API_BASE_URL`. The value is public
 browser configuration and must never contain secrets.
@@ -415,7 +426,8 @@ Part A is complete only when:
 - A new operation requires no executor, controller, DTO, API-contract, or form
   changes.
 - API errors use clean Problem Details responses.
-- OpenAPI-generated TypeScript types are used by the client.
+- OpenAPI-generated TypeScript DTO types and endpoint functions are used by the
+  client behind the handwritten API boundary.
 - Server and client builds pass.
 - The end-to-end browser flow is manually verified.
 - The exact comment marker `A34D` appears in submitted code.
