@@ -969,7 +969,7 @@ git commit -m "feat(client): load operation catalog from API"
 
 ---
 
-## Task 10: Complete Calculation, Errors, and UI Polish
+## Task 10: Complete Calculation, Errors, and Minimal UI
 
 **Files:**
 
@@ -984,7 +984,7 @@ git commit -m "feat(client): load operation catalog from API"
 - Produces states: ready, submitting, success, and expected error.
 - Displays standard Problem Details without depending on raw exception text.
 
-- [ ] **Step 1: Add the two controlled operands**
+- [x] **Step 1: Add the two controlled operands**
 
 Requirements:
 
@@ -993,7 +993,7 @@ Requirements:
 - no client-side numeric parsing;
 - no operation-specific form branch.
 
-- [ ] **Step 2: Submit through the typed API client**
+- [x] **Step 2: Submit through the typed API client**
 
 Send:
 
@@ -1005,7 +1005,7 @@ Disable Calculate while the request is in progress.
 
 Do not call `fetch` directly from the component.
 
-- [ ] **Step 3: Display success and errors**
+- [x] **Step 3: Display success and errors**
 
 On success, display the returned result.
 
@@ -1014,19 +1014,21 @@ JSON dump, stack trace, or transport object.
 
 Clear stale result/error state when a new calculation starts.
 
-- [ ] **Step 4: Complete accessibility and responsive styling**
+- [x] **Step 4: Preserve essential semantics in the minimal UI**
+
+The assignment requires a basic interface, not a production responsive-design
+standard. Keep the presentation intentionally minimal while preserving native
+form behavior and the semantics already needed by this flow.
 
 Verify:
 
-- labels remain visible;
-- all controls are keyboard reachable;
-- focus styles are visible;
-- disabled state is visually clear;
+- visible labels are programmatically associated with their controls;
+- native form controls remain keyboard reachable;
+- Calculate is disabled while a request is in progress;
 - result uses a live region or another accessible announcement mechanism;
-- error uses an alert role;
-- mobile width does not overflow.
+- error uses an alert role.
 
-- [ ] **Step 5: Run the real end-to-end matrix**
+- [x] **Step 5: Run the real end-to-end matrix**
 
 With both applications running, verify in the browser:
 
