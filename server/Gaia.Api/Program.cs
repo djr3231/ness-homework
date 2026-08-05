@@ -4,8 +4,24 @@ using Gaia.Operations.BuiltIn;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+const string DevelopmentClientCorsPolicy = "DevelopmentClient";
+if (builder.Environment.IsDevelopment())
+{
+    var allowedOrigin =
+        builder.Configuration["Cors:AllowedOrigin"]
+        ?? throw new InvalidOperationException("Development CORS origin is not configured.");
 
-// Add services to the container.
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(
+            DevelopmentClientCorsPolicy,
+            policy =>
+            {
+                policy.WithOrigins(allowedOrigin).AllowAnyHeader().AllowAnyMethod();
+            }
+        );
+    });
+}
 
 builder.Services.AddControllers();
 
@@ -27,6 +43,7 @@ app.UseExceptionHandler();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors(DevelopmentClientCorsPolicy);
     app.MapOpenApi();
     app.MapScalarApiReference();
 }

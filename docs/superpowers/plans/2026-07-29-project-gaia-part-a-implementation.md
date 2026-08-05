@@ -693,6 +693,7 @@ git commit -m "chore(client): scaffold React TypeScript app"
 - Create or modify: `server/Gaia.Api/appsettings.Development.json`
 - Modify: `client/package.json`
 - Modify: `client/package-lock.json`
+- Modify: `client/eslint.config.js`
 - Create: `client/openapi-ts.config.ts`
 - Create: `client/.env.example`
 - Create and commit: `client/src/api/generated/`
@@ -719,7 +720,7 @@ Do not use `AllowAnyOrigin`. Do not add production deployment origins.
 Verification completed with `dotnet build Gaia.slnx`; both server projects
 built successfully.
 
-- [ ] **Step 2: Replace the incompatible OpenAPI client tooling**
+- [x] **Step 2: Replace the incompatible OpenAPI client tooling**
 
 Run from `client`:
 
@@ -732,7 +733,19 @@ The exact version is committed through `package.json` and `package-lock.json`.
 Do not use `--force` or `--legacy-peer-deps`. The project requires Node.js
 22.18 or newer; Node.js 22.18.0 has been verified locally.
 
-- [ ] **Step 3: Configure deterministic client generation**
+Hey API 0.99.0 transitively pinned vulnerable `js-yaml` 4.2.0. Add the patched
+version as a root npm override:
+
+```json
+"overrides": {
+  "js-yaml": "4.3.0"
+}
+```
+
+Run `npm install` to refresh the lockfile. Verification must confirm
+`js-yaml` resolves to 4.3.0 and `npm audit` reports zero vulnerabilities.
+
+- [x] **Step 3: Configure deterministic client generation**
 
 Create `client/openapi-ts.config.ts`:
 
@@ -759,7 +772,7 @@ Add this `generate:api` package script:
 Do not integrate generation into every Vite build. The committed generated
 output keeps normal client builds independent from the server build artifact.
 
-- [ ] **Step 4: Generate the contract**
+- [x] **Step 4: Generate the contract**
 
 First build the server:
 
@@ -781,7 +794,7 @@ Inspect the generated directory. Confirm:
 - every generated file identifies itself as generated and contains no manual
   application logic.
 
-- [ ] **Step 5: Create the central typed client**
+- [x] **Step 5: Create the central typed client**
 
 `src/api/client.ts` must:
 
@@ -803,11 +816,16 @@ Create an ignored `client/.env.local` with the same local value. The
 application must fail clearly during development if `VITE_API_BASE_URL` is
 missing rather than silently using an unrelated URL.
 
-- [ ] **Step 6: Verify generation and client compilation**
+- [x] **Step 6: Verify generation and client compilation**
+
+Exclude only `src/api/generated/` through ESLint's `globalIgnores`. Generated
+files remain part of TypeScript compilation; handwritten TypeScript keeps the
+full recommended lint rules.
 
 Run:
 
 ```powershell
+npm audit
 npm run generate:api
 npm run lint
 npm run build
@@ -816,6 +834,10 @@ npm run build
 Expected: generation succeeds, lint reports no errors, and the production
 build compiles the generated DTO types, SDK functions, Fetch client, and
 handwritten API boundary successfully.
+
+Verification completed with zero npm audit findings, a clean lint run, a
+successful Vite production build, and a successful `dotnet build` of both
+server projects.
 
 - [ ] **Step 7: Commit the API boundary**
 
