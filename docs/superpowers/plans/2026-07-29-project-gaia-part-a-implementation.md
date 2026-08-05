@@ -860,6 +860,7 @@ git commit -m "feat(client): add generated typed API client"
 
 - Create: `client/src/components/OperationCalculator.tsx`
 - Modify: `client/src/App.tsx`
+- Modify: `client/src/api/client.ts`
 - Modify: `client/src/index.css` only if a small global rule is necessary
 
 **Interfaces:**
@@ -868,7 +869,7 @@ git commit -m "feat(client): add generated typed API client"
 - Produces: a selector populated exclusively from the server response.
 - Produces states: loading, load failure, and ready.
 
-- [ ] **Step 1: Define the component state**
+- [x] **Step 1: Define the component state**
 
 The component owns:
 
@@ -879,7 +880,7 @@ The component owns:
 
 Do not add a global state library.
 
-- [ ] **Step 2: Load operations on initial render**
+- [x] **Step 2: Load operations on initial render**
 
 Use the central typed API client.
 
@@ -893,7 +894,10 @@ On failure:
 - show a user-readable load error;
 - do not render a usable Calculate button.
 
-- [ ] **Step 3: Render an accessible selector**
+The Effect uses an `ignore` cleanup flag so a stale development Strict Mode
+request cannot update state after cleanup.
+
+- [x] **Step 3: Render an accessible selector**
 
 Requirements:
 
@@ -904,12 +908,18 @@ Requirements:
 
 No operation option may be hard-coded in JSX.
 
-- [ ] **Step 4: Apply the first Tailwind layout**
+The selector remains visible to preserve layout and is disabled while loading,
+after a load failure, or when the server returns no operations. A single
+prioritized status region communicates loading, failure, or an empty result and
+is linked to the selector with `aria-describedby`. The status region disappears
+when operations are ready.
+
+- [x] **Step 4: Apply the first Tailwind layout**
 
 Build a centered, responsive, single-column panel with visible keyboard focus.
 Do not add shadcn/ui or daisyUI.
 
-- [ ] **Step 5: Verify against the real API**
+- [x] **Step 5: Verify against the real API**
 
 Run the API:
 
@@ -931,7 +941,12 @@ Verify:
 - stopping the API and refreshing displays a load error;
 - no CORS error appears when both applications run.
 
-- [ ] **Step 6: Build and commit**
+Observed: all four operations loaded, the first operation was selected, changing
+the selection worked, the success status disappeared, stopping the API produced
+the safe error state with a disabled selector, and the browser showed no CORS
+or React errors.
+
+- [x] **Step 6: Run client checks**
 
 Run:
 
@@ -939,6 +954,10 @@ Run:
 npm run lint
 npm run build
 ```
+
+Both commands completed successfully.
+
+- [ ] **Step 7: Commit the operation catalog UI**
 
 After Codex reviews the component and real browser behavior, Codex stages only
 the scoped client source changes, reviews the staged boundary and verification

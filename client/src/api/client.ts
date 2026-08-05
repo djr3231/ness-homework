@@ -24,3 +24,5 @@ export function calculate(request: ExecuteOperationRequest) {
     body: request,
   });
 }
+
+export type { OperationResponse } from "./generated";
