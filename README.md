@@ -219,3 +219,6 @@ Part A is independently runnable and contains no database. SQL Server, Entity
 Framework Core, operation history, the three most recent operations of the same
 type, and the current-month operation count are deliberately deferred to the
 optional Part B. Part B requires a separate design and implementation cycle.
+
+
+Full context of the AI-assisted development conversations: [docs/codex-conversation-history.md](docs/codex-conversation-history.md)
